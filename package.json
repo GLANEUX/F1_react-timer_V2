@@ -1,0 +1,15 @@
+{
+  "name": "f1_react-timer_v2",
+  "version": "1.0.0",
+  "description": "V2 of the F1 react timer",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "F1_react-timer_V2"
+  },
+  "author": "Océane GLANEUX",
+  "license": "MIT"
+}
