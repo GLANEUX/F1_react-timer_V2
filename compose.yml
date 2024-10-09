@@ -1,0 +1,40 @@
+services:
+  api-back:
+    image: "node:alpine"
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/f1-react-timer
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev --host"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:jammy
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - f1-react-timer_data:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-f1
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: "27017"
+    ports:
+      - "0.0.0.0:8081:8081"
+    depends_on:
+      - mongo
+
+volumes:
+  f1-react-timer_data:
+    name: f1-react-timer_data
