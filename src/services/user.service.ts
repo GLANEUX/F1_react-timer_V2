@@ -67,7 +67,13 @@ export const RegisterUser = async (
         status: 401,
       };
     }
-
+    // Vérifier la syntaxe de role
+    if ((role != true && role != false) || !role) {
+      return {
+        message: "Le role doit être à false|true ou 0|1",
+        status: 401,
+      };
+    }
     // Créer un nouvel utilisateur
     const newUser = new User({ email, password, role });
 
@@ -108,26 +114,55 @@ export const updateUser = async (
   role: boolean,
   user_id: string
 ): Promise<UserResult> => {
-  if (password) {
-    if (!passwordRegex.test(password)) {
+  try {
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.id != user_id) {
+      return { message: "Cet email n'est pas disponible", status: 401 };
+    }
+
+    // Vérifier le mot de passe
+    if (password) {
+      if (!passwordRegex.test(password)) {
+        return {
+          message:
+            "Le mot de passe doit faire au moins 5 caractères et contenir au moins une majuscule, une minuscule, un chiffre, et un caractère spécial.",
+          status: 401,
+        };
+      }
+      password = await bcrypt.hash(password, saltRounds);
+    }
+
+    // Vérifier la syntaxe de role
+    if ((role != true && role != false) || !role) {
       return {
-        message:
-          "Le mot de passe doit faire au moins 5 caractères et contenir au moins une majuscule, une minuscule, un chiffre, et un caractère spécial.",
+        message: "Le role doit être à false|true ou 0|1",
         status: 401,
       };
     }
-    password = await bcrypt.hash(password, saltRounds);
-  }
 
-  const modify = { email, password, role };
+    const modify = { email, password, role };
 
-  const user = await User.findByIdAndUpdate(user_id, modify, {
-    new: true,
-  });
+    const user = await User.findByIdAndUpdate(user_id, modify, {
+      new: true,
+    });
 
-  if (user) {
-    return { message: `Utilisateur modifié: ${user.email}`, status: 201 };
-  } else {
-    return { message: "Utilisateur introuvable", status: 404 };
+    if (user) {
+      return { message: `Utilisateur modifié: ${user.email}`, status: 201 };
+    } else {
+      return { message: "Utilisateur introuvable", status: 404 };
+    }
+  } catch (error: any) {
+    // Gérer l'erreur MongoDB de duplication
+    if (error.code === 11000) {
+      return { message: "Cet email est déjà utilisé.", status: 409 };
+    }
+
+    // Gérer toute autre erreur
+    console.error(error);
+    return {
+      message: "Une erreur s'est produite lors de l'enregistrement",
+      status: 500,
+    };
   }
 };
