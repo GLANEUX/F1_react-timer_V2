@@ -35,12 +35,20 @@ export const userLogin = async (
   try {
     const { email, password } = req.body;
     const result = await loginUser(email, password);
-    res.status(result.status!).json({ message: result.message });
+
+    // Vérifiez si le statut est 200 (connexion réussie)
+    if (result.status === 200 && result.data?.token) {
+      res.status(result.status).json({
+        message: result.message,
+        token: result.data.token, // Inclure le token dans la réponse
+      });
+    } else {
+      // En cas d'échec, renvoyer uniquement le message
+      res.status(result.status!).json({ message: result.message });
+    }
   } catch (error) {
-    // console.error(error);
-    res
-      .status(500)
-      .json({ message: "Une erreur s'est produite lors du traitement" });
+    // En cas d'erreur interne, renvoyer une réponse d'erreur
+    res.status(500).json({ message: "Une erreur s'est produite lors du traitement" });
   }
 };
 

@@ -4,7 +4,7 @@
   "description": "V2 of the F1 react timer",
   "main": "app.ts",
 "scripts": {
-  "test": "jest --coverage --detectOpenHandles",
+  "test": "jest --silent",
   "start": "node src/app.ts",
   "dev": "nodemon src/app.ts"
 },

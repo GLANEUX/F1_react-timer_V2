@@ -13,6 +13,8 @@ interface UserResult {
   message?: string;
   error?: string;
   status?: number;
+  data?: any;
+
 }
 
 export const loginUser = async (
@@ -27,13 +29,13 @@ export const loginUser = async (
   }
 
   // Vérifie le mot de passe
-
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
     return { message: "Email ou mot de passe incorrect", status: 401 };
   }
 
+  // Générer un token si l'authentification est réussie
   const userData = {
     id: user._id,
     email: user.email,
@@ -44,8 +46,9 @@ export const loginUser = async (
     expiresIn: "10h",
   });
 
-  return { message: `token: ${token}`, status: 200 };
+  return { message: `token: ${token}`, status: 200, data: { token } };
 };
+
 
 export const RegisterUser = async (
   email: string,

@@ -7,14 +7,14 @@ dotenv.config();
 const jwtKey = process.env.JWT_KEY as string;
 
 interface CustomRequest extends Request {
-    user?: JwtPayload | string; 
+    user?: JwtPayload | string;
 }
 
 export const verifyToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = req.headers['authorization'];
+        if (req.headers && req.headers['authorization']) { // Vérification explicite de req.headers
+            const token = req.headers['authorization'];
 
-        if (token !== undefined) {
             const payload = await new Promise<JwtPayload | string>((resolve, reject) => {
                 jwt.verify(token, jwtKey, (error, decoded) => {
                     if (error) {
@@ -36,11 +36,12 @@ export const verifyToken = async (req: CustomRequest, res: Response, next: NextF
     }
 };
 
+
 export const verifyUserToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = req.headers['authorization'];
+        if (req.headers && req.headers['authorization']) { // Vérification explicite de req.headers
+            const token = req.headers['authorization'];
 
-        if (token !== undefined) {
             const payload = await new Promise<JwtPayload | string>((resolve, reject) => {
                 jwt.verify(token, jwtKey, (error, decoded) => {
                     if (error) {
@@ -59,7 +60,7 @@ export const verifyUserToken = async (req: CustomRequest, res: Response, next: N
                 res.status(403).json({ message: "Vous n'avez pas le bon token" });
             }
         } else {
-            res.status(403).json({ message: "Accès interdit : token user invalide" });
+            res.status(403).json({ message: "Accès interdit : token manquant" });
         }
     } catch (error) {
         console.error(error);
