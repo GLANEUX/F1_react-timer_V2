@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { TimerNew, AvgTime, TimerList } from "../services/timer.service";
+import { TimerNew, TimerList } from "../services/timer.service";
 
 interface TimerRequestBody {
-  duration: number;
-  description: string;
+  timer: number;
 }
 
 export const NewTimer = async (
@@ -12,8 +11,8 @@ export const NewTimer = async (
 ): Promise<void> => {
   try {
     const { user_id } = req.params;
-    const { duration, description } = req.body;
-    const result = await TimerNew(user_id, duration, description);
+    const { timer } = req.body;
+    const result = await TimerNew(user_id, timer);
     res.status(result.status!).json({ message: result.message });
   } catch (error) {
     // console.error(error);
@@ -23,34 +22,18 @@ export const NewTimer = async (
   }
 };
 
-export const avgTime = async (
-  req: Request<{ user_id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const { user_id } = req.params;
-    const result = await AvgTime(user_id);
-    res.status(result.status!).json({ message: result.message });
-  } catch (error) {
-    // console.error(error);
-    res
-      .status(500)
-      .json({ message: "Une erreur s'est produite lors du traitement" });
-  }
-};
 
 export const listTimer = async (
-  req: Request<{ user_id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const { user_id } = req.params;
-    const result = await TimerList(user_id);
-    res.status(result.status!).json({ message: result.message });
-  } catch (error) {
-    // console.error(error);
-    res
-      .status(500)
-      .json({ message: "Une erreur s'est produite lors du traitement" });
-  }
-};
+    req: Request<{ user_id: string }>,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { user_id } = req.params;
+      const result = await TimerList(user_id);
+      res.status(result.status!).json({ message: result.message, data: result.data });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Une erreur s'est produite lors du traitement" });
+    }
+  };
