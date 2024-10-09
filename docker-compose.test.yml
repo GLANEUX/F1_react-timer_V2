@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - MONGO_URI=mongodb://mongo:27017/f1-react-timer-test
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:jammy
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - f1-react-timer_data:/data/db
+
+volumes:
+  f1-react-timer_data:
+    name: f1-react-timer_data

@@ -67,7 +67,7 @@ export const userPut = async (
   try {
     const { user_id } = req.params;
     const { email, password, role } = req.body;
-    const result = await updateUser(email, password, role, user_id);
+    const result = await updateUser(user_id, email, password, role);
 
     res.status(result.status!).json({ message: result.message });
   } catch (error) {

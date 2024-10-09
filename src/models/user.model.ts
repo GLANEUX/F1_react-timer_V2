@@ -23,7 +23,7 @@ const userSchema = new Schema<IUser>({
     },
     role: {
         type: Boolean,
-        required: [true, 'Le rôle est requis'], 
+        required: [true, 'Le rôle est requis'],
     }
 });
 

@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import dotenv from "dotenv";
+import validator from 'validator';
 dotenv.config();
 
 const saltRounds = 10;
@@ -12,7 +13,7 @@ interface UserResult {
   message?: string;
   error?: string;
   status?: number;
-};
+}
 
 export const loginUser = async (
   email: string,
@@ -52,6 +53,15 @@ export const RegisterUser = async (
   role: boolean
 ): Promise<UserResult> => {
   try {
+
+    if (!validator.isEmail(email)) {
+        return {
+          message: "L'adresse email est invalide",
+          status: 401,
+        };
+      }
+
+
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
 
@@ -59,7 +69,7 @@ export const RegisterUser = async (
       return { message: "Cet email n'est pas disponible", status: 401 };
     }
 
-    // Valider le mot de passe
+        // Valider le mot de passe
     if (!passwordRegex.test(password)) {
       return {
         message:
@@ -68,7 +78,7 @@ export const RegisterUser = async (
       };
     }
     // Vérifier la syntaxe de role
-    if ((role != true && role != false) || !role) {
+    if ((role && role != true && role != false)) {
       return {
         message: "Le role doit être à false|true ou 0|1",
         status: 401,
@@ -101,18 +111,16 @@ export const RegisterUser = async (
   }
 };
 
-export const deleteUser = async (
-    user_id: string
-): Promise<UserResult> => {
+export const deleteUser = async (user_id: string): Promise<UserResult> => {
   await User.findByIdAndDelete(user_id);
   return { message: "Utilisateur supprimé", status: 200 };
 };
 
 export const updateUser = async (
-  email: string,
-  password: string,
-  role: boolean,
-  user_id: string
+  user_id: string,
+  email?: string,
+  password?: string,
+  role?: boolean
 ): Promise<UserResult> => {
   try {
     // Vérifier si l'utilisateur existe déjà

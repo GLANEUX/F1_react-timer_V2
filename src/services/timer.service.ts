@@ -23,7 +23,6 @@ export const TimerNew = async (
       const timerString = String(timer).replace(',', '.'); // Remplacer les virgules par des points
       const timerValue = parseFloat(timerString); // Convertir en nombre flottant
 
-      console.log(timerValue, isNaN(timerValue), Number.isInteger(timerValue), typeof(timerValue));
 
       // Vérification que le timer est bien un nombre entier valide et supérieur à 0
       if (isNaN(timerValue) || timerValue <= 0 || !Number.isInteger(timerValue)) {
