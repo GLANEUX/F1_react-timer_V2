@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use('/users', userRoute);
-app.use('/', timerRoute);
+app.use('/timers', timerRoute);
 
 // Démarrage du serveur
 const server = app.listen(port, () => {

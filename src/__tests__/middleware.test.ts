@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
-import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import { app, server } from '../app';
-import User from '../models/user.model';
-import connectToDatabase from '../configs/database.config';
+import mongoose from "mongoose";
+import request from "supertest";
+import jwt from "jsonwebtoken";
+import { app, server } from "../app";
+import User from "../models/user.model";
+import connectToDatabase from "../configs/database.config";
 
 let token: string;
 let userId: string;
@@ -17,21 +17,27 @@ beforeEach(async () => {
 
   // Créer un utilisateur
   const userResponse = await request(app)
-    .post('/users/register')
-    .send({ email: 'test-middleware@example.com', password: 'Password123!' });
+    .post("/users/register")
+    .send({ email: "test-middleware@example.com", password: "Password123!" });
 
-    const user = await User.findOne({ email: 'test-middleware@example.com' });
+  const user = await User.findOne({ email: "test-middleware@example.com" });
 
-    if (user && user._id) {
-      userId = user._id.toString();
-    } else {
-      throw new Error('Utilisateur non trouvé ou sans identifiant après l\'enregistrement');
-    }
+  if (user && user._id) {
+    userId = user._id.toString();
+  } else {
+    throw new Error(
+      "Utilisateur non trouvé ou sans identifiant après l'enregistrement"
+    );
+  }
 
   // Générer un token valide pour cet utilisateur
-  token = jwt.sign({ id: userId, email: 'test-middleware@example.com' }, process.env.JWT_KEY as string, {
-    expiresIn: '1h',
-  });
+  token = jwt.sign(
+    { id: userId, email: "test-middleware@example.com" },
+    process.env.JWT_KEY as string,
+    {
+      expiresIn: "1h",
+    }
+  );
 });
 
 afterAll(async () => {
@@ -39,52 +45,62 @@ afterAll(async () => {
   server.close();
 });
 
-describe('Middleware - verifyToken', () => {
-  it('should return 403 if token is missing', async () => {
-    const response = await request(app)
-      .get(`/timers/${userId}/get-reaction-times`); // Route protégée sans token
+describe("Middleware - verifyToken", () => {
+  it("should return 403 if token is missing", async () => {
+    const response = await request(app).get(
+      `/timers/${userId}/get-reaction-times`
+    ); // Route protégée sans token
 
     expect(response.status).toBe(403);
-    expect(response.body.message).toBe('Accès interdit : token manquant');
+    expect(response.body.message).toBe("Accès interdit : token manquant");
   });
 
-  it('should return 403 if token is invalid', async () => {
+  it("should return 403 if token is invalid", async () => {
     const response = await request(app)
       .get(`/timers/${userId}/get-reaction-times`)
-      .set('Authorization', 'Bearer invalidToken'); // Route protégée avec un token invalide
+      .set("Authorization", "invalidToken"); // Route protégée avec un token invalide
 
     expect(response.status).toBe(403);
-    expect(response.body.message).toBe('Accès interdit : token invalide');
+    expect(response.body.message).toBe("Accès interdit : token invalide");
   });
 
-  it('should call next if token is valid', async () => {
+  it("should call next if token is valid", async () => {
     const response = await request(app)
-      .get(`/timers/${userId}/get-reaction-times`)
-      .set('Authorization', `Bearer ${token}`); // Route protégée avec un token valide
+      .delete(`/users/${userId}`)
+      .set("Authorization", `${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.message).toBe('Timers récupérés avec succès');
+    expect(response.body.message).toBe("Utilisateur supprimé");
+
+    const deletedUser = await User.findById(userId);
+    expect(deletedUser).toBeNull();
   });
 });
 
 describe('Middleware - verifyUserToken', () => {
-  it('should return 403 if token does not match user_id', async () => {
+// 404
+ it('should return 403 if token does not match user_id', async () => {
     const anotherUserId = new mongoose.Types.ObjectId().toString(); // ID d'un autre utilisateur
 
     const response = await request(app)
-      .get(`/timers/${anotherUserId}/get-reaction-times`)
-      .set('Authorization', `Bearer ${token}`); // Token valide, mais ne correspond pas à user_id
+      .delete(`/users/${anotherUserId}`)
+      .set("Authorization", `${token}`);
 
     expect(response.status).toBe(403);
     expect(response.body.message).toBe("Vous n'avez pas le bon token");
+
   });
 
-  it('should call next if token matches user_id', async () => {
+
+ it('should call next if token matches user_id', async () => {
     const response = await request(app)
-      .get(`/timers/${userId}/get-reaction-times`)
-      .set('Authorization', `Bearer ${token}`); // Token valide et correspond à user_id
+      .delete(`/users/${userId}`)
+      .set("Authorization", `${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.message).toBe('Timers récupérés avec succès');
+    expect(response.body.message).toBe("Utilisateur supprimé");
+
+    const deletedUser = await User.findById(userId);
+    expect(deletedUser).toBeNull();
   });
 });

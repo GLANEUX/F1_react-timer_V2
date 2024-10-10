@@ -144,13 +144,13 @@ export const updateUser = async (
       password = await bcrypt.hash(password, saltRounds);
     }
 
-    // Vérifier la syntaxe de role
-    if ((role != true && role != false) || !role) {
-      return {
-        message: "Le role doit être à false|true ou 0|1",
-        status: 401,
-      };
-    }
+        // Vérifier la syntaxe de role
+        if ((role && role != true && role != false)) {
+          return {
+            message: "Le role doit être à false|true ou 0|1",
+            status: 401,
+          };
+        }
 
     const modify = { email, password, role };
 
