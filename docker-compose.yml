@@ -1,6 +1,9 @@
+version: '3'
 services:
   api-back:
-    image: "node:alpine"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     user: "node"
     working_dir: /home/node/app
     environment:

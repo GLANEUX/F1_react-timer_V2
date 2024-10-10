@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import dotenv from "dotenv";
+import validator from 'validator';
 dotenv.config();
 
 const saltRounds = 10;
@@ -12,7 +13,9 @@ interface UserResult {
   message?: string;
   error?: string;
   status?: number;
-};
+  data?: any;
+
+}
 
 export const loginUser = async (
   email: string,
@@ -26,13 +29,13 @@ export const loginUser = async (
   }
 
   // Vérifie le mot de passe
-
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
     return { message: "Email ou mot de passe incorrect", status: 401 };
   }
 
+  // Générer un token si l'authentification est réussie
   const userData = {
     id: user._id,
     email: user.email,
@@ -43,8 +46,9 @@ export const loginUser = async (
     expiresIn: "10h",
   });
 
-  return { message: `token: ${token}`, status: 200 };
+  return { message: `token: ${token}`, status: 200, data: { token } };
 };
+
 
 export const RegisterUser = async (
   email: string,
@@ -52,6 +56,15 @@ export const RegisterUser = async (
   role: boolean
 ): Promise<UserResult> => {
   try {
+
+    if (!validator.isEmail(email)) {
+        return {
+          message: "L'adresse email est invalide",
+          status: 401,
+        };
+      }
+
+
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
 
@@ -59,7 +72,7 @@ export const RegisterUser = async (
       return { message: "Cet email n'est pas disponible", status: 401 };
     }
 
-    // Valider le mot de passe
+        // Valider le mot de passe
     if (!passwordRegex.test(password)) {
       return {
         message:
@@ -68,7 +81,7 @@ export const RegisterUser = async (
       };
     }
     // Vérifier la syntaxe de role
-    if ((role != true && role != false) || !role) {
+    if ((role && role != true && role != false)) {
       return {
         message: "Le role doit être à false|true ou 0|1",
         status: 401,
@@ -101,18 +114,16 @@ export const RegisterUser = async (
   }
 };
 
-export const deleteUser = async (
-    user_id: string
-): Promise<UserResult> => {
+export const deleteUser = async (user_id: string): Promise<UserResult> => {
   await User.findByIdAndDelete(user_id);
   return { message: "Utilisateur supprimé", status: 200 };
 };
 
 export const updateUser = async (
-  email: string,
-  password: string,
-  role: boolean,
-  user_id: string
+  user_id: string,
+  email?: string,
+  password?: string,
+  role?: boolean
 ): Promise<UserResult> => {
   try {
     // Vérifier si l'utilisateur existe déjà
@@ -133,13 +144,13 @@ export const updateUser = async (
       password = await bcrypt.hash(password, saltRounds);
     }
 
-    // Vérifier la syntaxe de role
-    if ((role != true && role != false) || !role) {
-      return {
-        message: "Le role doit être à false|true ou 0|1",
-        status: 401,
-      };
-    }
+        // Vérifier la syntaxe de role
+        if ((role && role != true && role != false)) {
+          return {
+            message: "Le role doit être à false|true ou 0|1",
+            status: 401,
+          };
+        }
 
     const modify = { email, password, role };
 

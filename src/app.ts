@@ -21,8 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use('/users', userRoute);
-app.use('/', timerRoute);
+app.use('/timers', timerRoute);
 
-app.listen(port, () => {
+// Démarrage du serveur
+const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export { app, server };  // Exporter le serveur pour fermer lors des tests
